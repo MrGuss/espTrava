@@ -27,7 +27,7 @@ float temp = 0;
 
 class cell {
     public:
-      cell(byte waterS, byte pump, int sleep, int work){
+      cell(word waterS, word pump, int sleep, int work){
         _waterS = waterS;
         _pump = pump;
         _sleep = sleep;
@@ -42,6 +42,7 @@ class cell {
 
 
       void checkWater(){
+        Serial.println(getWater());
         if (getWater()==0){
           digitalWrite(_pump, HIGH);
         }
@@ -60,9 +61,9 @@ class cell {
       byte _pump;
       int _sleep;
       int _work;
-      };
+};
 
-
+cell1 = cell(14, LED_BUILTIN, 1000, 1000);
 // Функция получения данных от сервера
 
 void callback(const MQTT::Publish& pub)
@@ -94,6 +95,7 @@ void setup() {
 }
 
 void loop() {
+  cell1.checkWater();
   // подключаемся к wi-fi
   if (WiFi.status() != WL_CONNECTED) {
     Serial.print("Connecting to ");
