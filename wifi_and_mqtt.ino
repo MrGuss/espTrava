@@ -32,12 +32,12 @@ class cell {
         _pump = pump;
         _sleep = sleep;
         _work = work;
-        pinmode(_waterS, INPUT);
-        pinmode(_pump, OUTPUT);
+        pinMode(_waterS, INPUT);
+        pinMode(_pump, OUTPUT);
       }
 
-      void getWater(){
-        return digtalRead(_water);
+      byte getWater(){
+        return digitalRead(_waterS);
       }
 
 
@@ -60,9 +60,6 @@ class cell {
       byte _pump;
       int _sleep;
       int _work;
-      int 
-
-
       };
 
 
