@@ -63,7 +63,7 @@ class cell {
       int _work;
 };
 
-cell1 = cell(14, LED_BUILTIN, 1000, 1000);
+cell cell1 = cell(14, 12, 1000, 1000);
 // Функция получения данных от сервера
 
 void callback(const MQTT::Publish& pub)
