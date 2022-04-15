@@ -43,10 +43,10 @@ class cell {
 
       void checkWater(){
         if (getWater()==0){
-          digitalWrite(pump, HIGH);
+          digitalWrite(_pump, HIGH);
         }
         else{
-          digitalWrite(pump, LOW);
+          digitalWrite(_pump, LOW);
         }
       }
 
@@ -55,12 +55,13 @@ class cell {
         _work = work;
       }
 
-      void 
-
     private:
       byte _waterS;
+      byte _pump;
       int _sleep;
       int _work;
+      int 
+
 
       };
 
