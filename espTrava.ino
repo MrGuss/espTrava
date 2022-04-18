@@ -107,7 +107,7 @@ class cell {
         
         void sendHeartbeat(){
             if ((millis() - this->_lastMilHB) >= this->_hbDelay){
-                String json = "{\n\"ID\": " + String(_id) + ",\n\"Humidity\": " + String(this->getHum()) + ",\n\"Temperature\": " + String(this->getTemp()) + "\n}";
+                String json = "{\n\"ID\": " + String(this->_id) + ",\n\"Humidity\": " + String(this->getHum()) + ",\n\"Temperature\": " + String(this->getTemp()) + "\n}";
                 client.publish("test/heartbeat", json);
                 this->_lastMilHB = millis();
             }
