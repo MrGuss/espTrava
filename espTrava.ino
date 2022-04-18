@@ -29,12 +29,14 @@ float temp = 0;
 class cell {
 
     public:      
-      cell(word waterS, uint8_t dhtPin, word pump, int sleep, int work) {
+      cell(int id, word waterS, uint8_t dhtPin, word pump, int sleep, int work, int hbDelay) {
+        this->_id = id;
         this->_waterS = waterS;
         this->_dhtPin = dhtPin;
         this->_pump = pump;
         this->_sleep = sleep;
         this->_work = work;
+        this->_hbDelay = hbDelay;
         this->_dht = DHT(this->_dhtPin, DHT11);
         pinMode(this->_waterS, INPUT);
         pinMode(this->_dhtPin, INPUT);
@@ -94,24 +96,29 @@ class cell {
         }
       }
 
-      void setTimers(int sleep, int work){
-        this->_sleep = sleep;
-        this->_work = work;
+      void TimersInit(){
+        //this->_sleep = sleep;
+        //this->_work = work;
+        _lastMilHB = -100000;
       }
-
+        
         void sendHeartbeat(){
-            String json = "{\n\"Humidity\": " + String(getHum) + ",\n\"Temerature\": " + String(getTemp) + "\n}";
-            client.publish("test/heartbeat", json);
+            if ((millis()-_lastMilHB)>=_hbDelay){
+                String json = "{\n\"ID\": " + String(_id) + ",\n\"Humidity\": " + String(getHum) + ",\n\"Temerature\": " + String(getTemp) + "\n}";
+                client.publish("test/heartbeat", json);
+                _lastMilHB = millis();
+            }
         }
     private:
-
+        int _id;
+        int _lastMilHB;
       byte _waterS;
       byte _pump;
       uint8_t _dhtPin;
       DHT _dht = DHT(0, DHT11);
       int _sleep;
       int _work;
-
+        int _hbDelay;
 };
 
 uint8_t dhtPin = 14; //D5
@@ -142,7 +149,7 @@ WiFiClient wclient;
 PubSubClient client(wclient, mqtt_server, mqtt_port);
 
 void setup() {
-
+    cell1.TimersInit();
   //sensors.begin();
   Serial.begin(115200);
   delay(10);
