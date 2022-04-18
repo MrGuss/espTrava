@@ -27,40 +27,44 @@ float temp = 0;
 
 class cell {
     public:
-      cell(word waterS, word pump, int sleep, int work){
-        _waterS = waterS;
-        _pump = pump;
-        _sleep = sleep;
-        _work = work;
-        pinMode(_waterS, INPUT);
-        pinMode(_pump, OUTPUT);
-      }
-
-      byte getWater(){
-        return digitalRead(_waterS);
-      }
-
-
-      void checkWater(){
-        Serial.println(getWater());
-        if (getWater()==0){
-          digitalWrite(_pump, HIGH);
+        cell(word waterS, word pump, int sleep, int work){
+            _waterS = waterS;
+            _pump = pump;
+            _sleep = sleep;
+            _work = work;
+            pinMode(_waterS, INPUT);
+            pinMode(_pump, OUTPUT);
         }
-        else{
-          digitalWrite(_pump, LOW);
+
+        byte getWater(){
+            return digitalRead(_waterS);
         }
-      }
 
-      void setTimers(int sleep, int work){
-        _sleep = sleep;
-        _work = work;
-      }
 
+        void checkWater(){
+            Serial.println(getWater());
+            if (getWater()==0){
+                digitalWrite(_pump, HIGH);
+            }
+            else{
+                digitalWrite(_pump, LOW);
+            }
+        }
+
+        void setTimers(int sleep, int work){
+            _sleep = sleep;
+            _work = work;
+        }
+        void sendHeartbeat(){
+
+            String json = "{\n\"Humidity\": " + String(getHum) + ",\n\"Temerature\": " + String(getTemp) + "\n}";
+            client.publish("test/heartbeat", json);
+        }
     private:
-      byte _waterS;
-      byte _pump;
-      int _sleep;
-      int _work;
+        byte _waterS;
+        byte _pump;
+        int _sleep;
+        int _work;
 };
 
 cell cell1 = cell(14, 12, 1000, 1000);
@@ -79,6 +83,10 @@ void callback(const MQTT::Publish& pub)
     int stled = payload.toInt(); // преобразуем полученные данные в тип integer
     digitalWrite(LED_BUILTIN,  abs(stled-1)); // включаем или выключаем светодиод в зависимоти от полученных значений данных
   }
+
+    if (String(pub.topic()) == "test/heartbeat"){
+        cell1.sendHeartbeat();
+    }
 }
 
 WiFiClient wclient;
@@ -123,23 +131,11 @@ void loop() {
     }
 
     if (client.connected()) {
-      client.loop();
-      //TempSend();
+        client.loop();
+        cell1.sendHeartbeat();
+
     }
 
   }
 } // конец основного цикла
 
-// Функция отправки показаний с термодатчика
-/*void TempSend() {
-  if (tm == 0)
-  {
-    //sensors.requestTemperatures(); // от датчика получаем значение температуры
-    //float temp = sensors.getTempCByIndex(0);
-    client.publish("test/temp", String(0)); // отправляем в топик для термодатчика значение температуры
-    //Serial.println(0);
-    tm = 300; // пауза меду отправками значений температуры коло 3 секунд
-  }
-  tm--;
-  delay(10);
-}*/
