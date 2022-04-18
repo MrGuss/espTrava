@@ -50,24 +50,24 @@ class cell {
       byte getWater(){
         return digitalRead(this->_waterS);
       }
-      float getHum()
+      int getHum()
       {
-        float h = this->_dht.readHumidity();
+        int h = this->_dht.readHumidity();
         if(isnan(h))
         {
           Serial.println("Failed to address DHT11 to get humidity.");
-          return -1.0;
+          return -1;
         }
         return h;
       }
 
-      float getTemp()
+      int getTemp()
       {
-        float t = this->_dht.readTemperature();
+        int t = this->_dht.readTemperature();
         if(isnan(t))
         {
           Serial.println("Failed to address DHT11 to get temperature.");
-          return -1.0;
+          return -1;
         }
         return t;
       }
@@ -107,7 +107,7 @@ class cell {
         
         void sendHeartbeat(){
             if ((millis() - this->_lastMilHB) >= this->_hbDelay){
-                String json = "{\n\"ID\": " + String(this->_id) + ",\n\"Humidity\": " + String(this->getHum()) + ",\n\"Temperature\": " + String(this->getTemp()) + "\n}";
+                String json = "{\"ID\": " + String(this->_id) + ", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) + "}";
                 client.publish("test/heartbeat", json);
                 this->_lastMilHB = millis();
             }
