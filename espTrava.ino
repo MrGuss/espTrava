@@ -99,7 +99,7 @@ class cell {
         this->_work = work;
       }
 
-
+        void sendHeartbeat(){
             String json = "{\n\"Humidity\": " + String(getHum) + ",\n\"Temerature\": " + String(getTemp) + "\n}";
             client.publish("test/heartbeat", json);
         }
