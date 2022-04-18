@@ -1,6 +1,7 @@
 // Светодиод подлкючен к 5 пину
 // Датчик температуры ds18b20 к 2 пину
 
+#include "DHT.h"
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 //#include <OneWire.h>
@@ -26,44 +27,90 @@ float temp = 0;
 
 
 class cell {
-    public:
-      cell(word waterS, word pump, int sleep, int work){
-        _waterS = waterS;
-        _pump = pump;
-        _sleep = sleep;
-        _work = work;
-        pinMode(_waterS, INPUT);
-        pinMode(_pump, OUTPUT);
+    public:      
+      cell(word waterS, uint8_t dhtPin, word pump, int sleep, int work) {
+        this->_waterS = waterS;
+        this->_dhtPin = dhtPin;
+        this->_pump = pump;
+        this->_sleep = sleep;
+        this->_work = work;
+        this->_dht = DHT(this->_dhtPin, DHT11);
+        pinMode(this->_waterS, INPUT);
+        pinMode(this->_dhtPin, INPUT);
+        pinMode(this->_pump, OUTPUT);
+        this->_dht.begin();
       }
 
       byte getWater(){
-        return digitalRead(_waterS);
+        return digitalRead(this->_waterS);
       }
 
+      float getHum()
+      {
+        float h = this->_dht.readHumidity();
+        if(isnan(h))
+        {
+          Serial.println("Failed to address DHT11 to get humidity.");
+          return -1.0;
+        }
+        return h;
+      }
 
+      float getTemp()
+      {
+        float t = this->_dht.readTemperature();
+        if(isnan(t))
+        {
+          Serial.println("Failed to address DHT11 to get temperature.");
+          return -1.0;
+        }
+        return t;
+      }
+
+      void checkDHT()
+      {
+        float h, t;
+        h = this->getHum();
+        t = this->getTemp();
+        if(h != -1.0)
+        {
+          Serial.print("Humidity:    ");
+          Serial.println(h);
+        }
+        if(t != -1.0)
+        {
+          Serial.print("Temperature: ");
+          Serial.println(t);
+        }
+      }
+      
       void checkWater(){
-        Serial.println(getWater());
-        if (getWater()==0){
-          digitalWrite(_pump, HIGH);
+        Serial.println(this->getWater());
+        if (this->getWater() == 0){
+          digitalWrite(this->_pump, HIGH);
         }
         else{
-          digitalWrite(_pump, LOW);
+          digitalWrite(this->_pump, LOW);
         }
       }
 
       void setTimers(int sleep, int work){
-        _sleep = sleep;
-        _work = work;
+        this->_sleep = sleep;
+        this->_work = work;
       }
 
     private:
       byte _waterS;
       byte _pump;
+      uint8_t _dhtPin;
+      DHT _dht = DHT(0, DHT11);
       int _sleep;
       int _work;
 };
 
-cell cell1 = cell(14, 12, 1000, 1000);
+uint8_t dhtPin = 14; //D5
+cell cell1 = cell(14, dhtPin, 12, 1000, 1000);
+
 // Функция получения данных от сервера
 
 void callback(const MQTT::Publish& pub)
@@ -95,7 +142,6 @@ void setup() {
 }
 
 void loop() {
-  cell1.checkWater();
   // подключаемся к wi-fi
   if (WiFi.status() != WL_CONNECTED) {
     Serial.print("Connecting to ");
