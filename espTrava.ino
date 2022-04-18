@@ -102,14 +102,14 @@ class cell {
       void TimersInit(){
         //this->_sleep = sleep;
         //this->_work = work;
-        _lastMilHB = -100000;
+        this->_lastMilHB = -100000;
       }
         
         void sendHeartbeat(){
-            if ((millis()-_lastMilHB)>=_hbDelay){
-                String json = "{\n\"ID\": " + String(_id) + ",\n\"Humidity\": " + String(getHum()) + ",\n\"Temerature\": " + String(getTemp()) + "\n}";
+            if ((millis() - this->_lastMilHB) >= this->_hbDelay){
+                String json = "{\n\"ID\": " + String(_id) + ",\n\"Humidity\": " + String(this->getHum()) + ",\n\"Temperature\": " + String(this->getTemp()) + "\n}";
                 client.publish("test/heartbeat", json);
-                _lastMilHB = millis();
+                this->_lastMilHB = millis();
             }
         }
     private:
@@ -125,7 +125,7 @@ class cell {
 };
 
 uint8_t dhtPin = 14; //D5
-cell cell1 = cell(14, dhtPin, 12, 1000, 1000);
+cell cell1 = cell(1, 14, dhtPin, 12, 1000, 1000, 5000);
 
 // Функция получения данных от сервера
 
@@ -194,4 +194,3 @@ void loop() {
 
   }
 } // конец основного цикла
-
