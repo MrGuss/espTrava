@@ -21,6 +21,9 @@ const char *mqtt_pass = ""; // Пароль от сервера
 
 #define BUFFER_SIZE 100
 
+WiFiClient wclient;
+PubSubClient client(wclient, mqtt_server, mqtt_port);
+
 bool LedState = false;
 int tm = 300;
 float temp = 0;
@@ -104,7 +107,7 @@ class cell {
         
         void sendHeartbeat(){
             if ((millis()-_lastMilHB)>=_hbDelay){
-                String json = "{\n\"ID\": " + String(_id) + ",\n\"Humidity\": " + String(getHum) + ",\n\"Temerature\": " + String(getTemp) + "\n}";
+                String json = "{\n\"ID\": " + String(_id) + ",\n\"Humidity\": " + String(getHum()) + ",\n\"Temerature\": " + String(getTemp()) + "\n}";
                 client.publish("test/heartbeat", json);
                 _lastMilHB = millis();
             }
@@ -145,8 +148,6 @@ void callback(const MQTT::Publish& pub)
     }
 }
 
-WiFiClient wclient;
-PubSubClient client(wclient, mqtt_server, mqtt_port);
 
 void setup() {
     cell1.TimersInit();
