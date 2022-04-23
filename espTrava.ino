@@ -30,20 +30,21 @@ float temp = 0;
 
 
 class cell {
-
     public:      
-      cell(int id, word waterS, uint8_t dhtPin, word pump, int sleep, int work, int hbDelay) {
+      cell(word waterS, uint8_t dhtPin, byte pump, byte lightPin, int lightTimeUp, int lightTimeDown,  int hbDelay) {
         this->_id = id;
         this->_waterS = waterS;
         this->_dhtPin = dhtPin;
         this->_pump = pump;
-        this->_sleep = sleep;
-        this->_work = work;
         this->_hbDelay = hbDelay;
         this->_dht = DHT(this->_dhtPin, DHT11);
+        _lightPin = lightPin;
+        _lightTimeUp = lightTimeUp;
+        _lightTimeDown = lightTimeDown;
         pinMode(this->_waterS, INPUT);
         pinMode(this->_dhtPin, INPUT);
         pinMode(this->_pump, OUTPUT);
+        pinmode(_lightPin, OUTPUT);
         this->_dht.begin();
       }
 
@@ -103,29 +104,60 @@ class cell {
         //this->_sleep = sleep;
         //this->_work = work;
         this->_lastMilHB = -100000;
+        this->_lastMilLight = -100000;
       }
         
-        void sendHeartbeat(){
-            if ((millis() - this->_lastMilHB) >= this->_hbDelay){
-                String json = "{\"ID\": " + String(this->_id) + ", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) + "}";
+        void sendHeartbeat(bool now){
+            if (now){
+                String json = "{\"ID\": " + String(WiFi.macAddress()) + ", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) + "}";
                 client.publish("test/heartbeat", json);
-                this->_lastMilHB = millis();
+            }
+            else{
+                if ((millis() - this->_lastMilHB) >= this->_hbDelay){
+                    String json = "{\"ID\": " + String(WiFi.macAddress()) + ", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) + "}";
+                    client.publish("test/heartbeat", json);
+                    this->_lastMilHB = millis();
+                }
             }
         }
+        
+        void lightLoop(){
+            if (not(_lightState) & ((millis()-_lastMilLight)>=_lightTimeDown)){
+                digitalWrite(_lightPin, HIGH);
+                _lastMilLight = millis();
+                _lightState = 1;
+            }
+            else if (_lightState & ((millis()-_lastMilLight )>=_lightTimeDown)){
+                digitalWrite(_lightPin, LOW);
+                _lastMilLight = millis();
+                _lightState = 0;
+            }
+        }
+
+        void updateLoops(){
+            lightLoop();
+            sendHeartbeat(false);
+        }
     private:
-        int _id;
         int _lastMilHB;
-      byte _waterS;
-      byte _pump;
-      uint8_t _dhtPin;
-      DHT _dht = DHT(0, DHT11);
-      int _sleep;
-      int _work;
+
+        byte _lightPin;
+        int _lastMilLight;
+        int _lightTimeUp;
+        int _lightTimeDown;
+        bool _lightState;
+        
+        byte _pump;
+       
+        byte _waterS; 
+        uint8_t _dhtPin;
+        DHT _dht = DHT(0, DHT11);
+        
         int _hbDelay;
 };
 
 uint8_t dhtPin = 14; //D5
-cell cell1 = cell(1, 14, dhtPin, 12, 1000, 1000, 5000);
+cell cell1 = cell(14, dhtPin, 12, LED_BUILTIN, 5000, 2000, 5000);
 
 // Функция получения данных от сервера
 
@@ -144,7 +176,7 @@ void callback(const MQTT::Publish& pub)
   }
 
     if (String(pub.topic()) == "test/heartbeat"){
-        cell1.sendHeartbeat();
+        cell1.sendHeartbeat(true);
     }
 }
 
@@ -188,9 +220,8 @@ void loop() {
 
     if (client.connected()) {
         client.loop();
-        cell1.sendHeartbeat();
-
     }
+    cell1.updateLoops();
 
   }
 } // конец основного цикла
