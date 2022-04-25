@@ -47,7 +47,7 @@ class cell {
             this->_dht.begin();
         }
 
-        byte getWater(){
+        byte getWater() {
             return digitalRead(this->_waterS);
         }
       
@@ -69,8 +69,7 @@ class cell {
             return t;
         }
 
-        void checkDHT()    // Not used in project; prints data from DHT into Serial.
-        {
+        void checkDHT() {    // Not used in project; prints data from DHT into Serial.
             float h, t;
             h = this->getHum();
             t = this->getTemp();
@@ -84,28 +83,28 @@ class cell {
             }
         }
       
-      void checkWater(){
-        Serial.println(this->getWater());
-        if (this->getWater() == 0){
-          digitalWrite(this->_pump, HIGH);
+        void checkWater() {
+            Serial.println(this->getWater());
+            if (this->getWater() == 0) {
+                digitalWrite(this->_pump, HIGH);
+            }
+            else {
+                digitalWrite(this->_pump, LOW);
+            }
         }
-        else{
-          digitalWrite(this->_pump, LOW);
-        }
-      }
 
-      void TimersInit(){
-        this->_lastMilHB = -100000;
-        this->_lastMilLight = -100000;
-      }
+        void TimersInit() {
+            this->_lastMilHB = -100000;
+            this->_lastMilLight = -100000;
+        }
         
-        void sendHeartbeat(bool now){
-            if (now){
+        void sendHeartbeat(bool now) {
+            if (now) {
                 String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) + "}";
                 client.publish("test/heartbeat", json);
             }
-            else{
-                if ((millis() - this->_lastMilHB) >= this->_hbDelay){
+            else {
+                if ((millis() - this->_lastMilHB) >= this->_hbDelay) {
                     String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) +", \"Light\": " + String(int(_lightState)) + "}";
                     client.publish("test/heartbeat", json);
                     this->_lastMilHB = millis();
@@ -113,23 +112,24 @@ class cell {
             }
         }
         
-        void lightLoop(){
-            if (!this->_lightState && (millis() - this->_lastMilLight) >= this->_lightTimeDown){
+        void lightLoop() {
+            if (!this->_lightState && (millis() - this->_lastMilLight) >= this->_lightTimeDown) {
                 digitalWrite(this->_lightPin, HIGH);
                 this->_lastMilLight = millis();
                 this->_lightState = 1;
             }
-            else if (this->_lightState && (millis() - this->_lastMilLight) >= this->_lightTimeDown){
+            else if (this->_lightState && (millis() - this->_lastMilLight) >= this->_lightTimeDown) {
                 digitalWrite(this->_lightPin, LOW);
                 this->_lastMilLight = millis();
                 this->_lightState = 0;
             }
         }
 
-        void updateLoops(){
+        void updateLoops() {
             this->lightLoop();
             this->sendHeartbeat(false);
         }
+        
     private:
         int _lastMilHB;
 
@@ -161,13 +161,15 @@ void callback(const MQTT::Publish& pub)                      // Функция �
     Serial.println(String(pub.payload_string().toInt()));    //   выводим в сериал порт значение полученных данных
     String payload = pub.payload_string();
 
+    /*
     if (String(pub.topic()) == "test/blink")                 //   проверяем из нужного ли нам топика пришли данные
     {
         int stled = payload.toInt();                         //   преобразуем полученные данные в тип integer
         digitalWrite(LED_BUILTIN,  abs(stled-1));            //   включаем или выключаем светодиод в зависимоти от полученных значений данных
     }
+    */
 
-    if (String(pub.topic()) == "test/heartbeat"){
+    if (String(pub.topic()) == "test/heartbeat") {
         cell1.sendHeartbeat(true);
     }
 }
@@ -206,7 +208,7 @@ void loop()
                          .set_auth(mqtt_user, mqtt_pass))) {
                 Serial.println("Connected to MQTT server");
                 client.set_callback(callback);
-                client.subscribe("test/blink");    // подписывааемся по топик с данными для светодиода
+                client.subscribe("test/manage");    // подписывааемся по топик с данными для светодиода
             } 
             else {
                 Serial.println("Could not connect to MQTT server");
