@@ -24,11 +24,6 @@ const char *mqtt_pass = "";                 // Пароль от сервера
 WiFiClient wclient;
 PubSubClient client(wclient, mqtt_server, mqtt_port);
 
-bool LedState = false;
-int tm = 300;
-float temp = 0;
-
-
 class cell {
     public:      
         cell(word waterS, uint8_t dhtPin, byte pump, byte lightPin, int lightTimeUp, int lightTimeDown,  int hbDelay) {
@@ -169,9 +164,11 @@ void callback(const MQTT::Publish& pub)                      // Функция �
     }
     */
 
+    /*
     if (String(pub.topic()) == "test/heartbeat") {
         cell1.sendHeartbeat(true);
     }
+    */
 }
 
 
@@ -208,7 +205,7 @@ void loop()
                          .set_auth(mqtt_user, mqtt_pass))) {
                 Serial.println("Connected to MQTT server");
                 client.set_callback(callback);
-                client.subscribe("test/manage");    // подписывааемся по топик с данными для светодиода
+                client.subscribe("test/#");    // подписывааемся по топик с данными для светодиода
             } 
             else {
                 Serial.println("Could not connect to MQTT server");
