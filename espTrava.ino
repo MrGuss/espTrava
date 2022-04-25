@@ -106,7 +106,7 @@ class cell {
             }
             else{
                 if ((millis() - this->_lastMilHB) >= this->_hbDelay){
-                    String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) + "}";
+                    String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(this->getHum()) + ", \"Temperature\": " + String(this->getTemp()) +", \"Light\": " + String(int(_lightState)) + "}";
                     client.publish("test/heartbeat", json);
                     this->_lastMilHB = millis();
                 }
