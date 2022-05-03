@@ -25,7 +25,9 @@ class cell {
         int _lastMilLight;
         int _lightTimeUp;
         int _lightTimeDown;
+        int _waterPeriod;
         bool _lightState;
+        byte _lightStateHard = 0;
         byte _pump;
         byte _waterS; 
         uint8_t _dhtPin;

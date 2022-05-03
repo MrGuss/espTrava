@@ -52,7 +52,9 @@ void callback(const MQTT::Publish& pub)                      // Функция �
 
     Serial.println(String(pub.payload_string().toInt()));    //   выводим в сериал порт значение полученных данных
     String payload = pub.payload_string();
-
+    if (String(pub.topic()) == "test/light"){
+        Serial.println(payload);
+    }
     /*
     if (String(pub.topic()) == "test/heartbeat") {
         cell1.sendHeartbeat(true);
