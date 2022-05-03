@@ -77,12 +77,12 @@ void cell::TimersInit(int lightUp, int lightDown, int waterPeriod) {
 
 void cell::lightLoop() {
   if (_lightStateHard==0){
-    if (!this->_lightState && (millis() - this->_lastMilLight) >= this->_lightTimeDown) {
+    if (!(this->_lightState) && ((millis() - this->_lastMilLight) >= this->_lightTimeUp)) {
       digitalWrite(this->_lightPin, HIGH);
       this->_lastMilLight = millis();
       this->_lightState = 1;
     }
-    else if (this->_lightState && (millis() - this->_lastMilLight) >= this->_lightTimeDown) {
+    else if (this->_lightState && ((millis() - this->_lastMilLight) >= this->_lightTimeDown)) {
       digitalWrite(this->_lightPin, LOW);
       this->_lastMilLight = millis();
       this->_lightState = 0;
