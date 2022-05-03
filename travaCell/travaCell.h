@@ -9,7 +9,7 @@
 
 class cell {
     public:      
-        cell(word waterS, uint8_t dhtPin, byte pump, byte lightPin, int lightTimeUp, int lightTimeDown);
+        cell(word waterS, uint8_t dhtPin, byte pump, byte lightPin, int lightTimeUp, int lightTimeDown, int waterPeriod);
         byte getWater();
 		bool lightState();
         int getHum();
