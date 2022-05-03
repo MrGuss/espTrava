@@ -16,9 +16,10 @@ class cell {
         int getTemp();
         void checkDHT();     // Not used in project; prints data from DHT into Serial.
         void checkWater();   // ?
-        //void TimersInit();
+        void TimersInit(int lightUp, int lightDown, int waterPeriod);
         void sendHeartbeat(bool now);
         void lightLoop();
+		void lightHardSet(byte state);
         void updateLoops();
     private:
         byte _lightPin;

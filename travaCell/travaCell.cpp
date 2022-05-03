@@ -66,7 +66,7 @@ void cell::checkWater() {
   }
 }
 
-void cell::TimersInit(lightUp, lightDown, waterPeriod) {
+void cell::TimersInit(int lightUp, int lightDown, int waterPeriod) {
   this->_lightTimeUp = lightUp;
   this->_lightTimeDown = lightDown;
   this->_waterPeriod = waterPeriod;
@@ -90,12 +90,12 @@ void cell::lightLoop() {
   }
 }
 
-void cell:lightHardSet(byte state){
-  if (state==1){
+void cell::lightHardSet(byte state) {
+  if (state==1) {
     this->_lightStateHard = 1;
     digitalWrite(this->_lightPin, HIGH);
   }
-  else if (state==2){
+  else if (state==2) {
     this->_lightStateHard = 2;
     digitalWrite(this->_lightPin, LOW);
   }

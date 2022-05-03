@@ -29,7 +29,7 @@ PubSubClient client(wclient, mqtt_server, mqtt_port);
 //RTC clock;
 
 uint8_t dhtPin = 14; //D5
-cell cell1 = cell(14, dhtPin, 12, LED_BUILTIN, 5000, 2000);
+cell cell1 = cell(14, dhtPin, 12, LED_BUILTIN, 5000, 2000, 1);
 
 void sendHeartbeat(bool now) {
     if (now) {
