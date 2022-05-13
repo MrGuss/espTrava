@@ -2,6 +2,10 @@
 #define TRAVA_CELL_H
 
 #include "DHT.h"
+#include <Wire.h> // Library for I2C communication
+#include <SPI.h>  // not used here, but needed to prevent a RTClib compile error
+#include "RTClib.h"
+
 //#include <OneWire.h>
 //#include <DallasTemperature.h>
 
@@ -22,6 +26,7 @@ class cell {
 		void lightHardSet(byte state);
         void updateLoops();
     private:
+        RTC_DS1307 _RTC;     // Setup an instance of DS1307 naming it RTC
         byte _lightPin;
         int _lastMilLight;
         int _lightTimeUp;

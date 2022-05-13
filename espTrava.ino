@@ -10,7 +10,6 @@
 #include <travaCell.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
-#include <TroykaRTC.h>
 
 StaticJsonDocument<128> doc;
 
@@ -34,7 +33,7 @@ PubSubClient client(wclient, mqtt_server, mqtt_port);
 //RTC clock;
 
 uint8_t dhtPin = 14; //D5
-cell cell1 = cell(14, dhtPin, 12, LED_BUILTIN, 5000, 2000, 1);
+cell cell1 = cell(14, dhtPin, 12, LED_BUILTIN, 5, 2, 1);
 
 void sendHeartbeat(bool now) {
   if (now) {
@@ -61,11 +60,13 @@ void callback(const MQTT::Publish& pub)                      // Функция �
   strcpy(payload, pub.payload_string().c_str());
 
   if (String(pub.topic()) == "test/light") {
-
+    
     DeserializationError error = deserializeJson(doc, payload);
     const char* buf = doc["MAC"]; // "98:7a:7f:45:d4:r3:8d"
     String MAC = buf;
     byte state = doc["state"]; // 1351824120
+    Serial.print("light ");
+    Serial.println(state);
     if (MAC == String(WiFi.macAddress())) {
       cell1.lightHardSet(state);
       Serial.println(state);

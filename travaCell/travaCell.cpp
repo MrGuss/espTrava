@@ -14,6 +14,8 @@ cell::cell(word waterS, uint8_t dhtPin, byte pump, byte lightPin, int lightTimeU
   pinMode(this->_pump, OUTPUT);
   pinMode(this->_lightPin, OUTPUT);
   this->_dht.begin();
+  Wire.begin(); // Start the I2C
+  _RTC.begin();  // Init RTC
 }
 
 bool cell::lightState(){
@@ -76,15 +78,17 @@ void cell::TimersInit(int lightUp, int lightDown, int waterPeriod) {
 }
 
 void cell::lightLoop() {
+  DateTime now = _RTC.now();
+  Serial.println(now.secondstime());
   if (_lightStateHard==0){
-    if (!(this->_lightState) && ((millis() - this->_lastMilLight) >= this->_lightTimeUp)) {
+    if (!(this->_lightState) && ((now.secondstime() - this->_lastMilLight) >= this->_lightTimeUp)) {
       digitalWrite(this->_lightPin, HIGH);
-      this->_lastMilLight = millis();
+      this->_lastMilLight = now.secondstime();
       this->_lightState = 1;
     }
-    else if (this->_lightState && ((millis() - this->_lastMilLight) >= this->_lightTimeDown)) {
+    else if (this->_lightState && ((now.secondstime() - this->_lastMilLight) >= this->_lightTimeDown)) {
       digitalWrite(this->_lightPin, LOW);
-      this->_lastMilLight = millis();
+      this->_lastMilLight = now.secondstime();
       this->_lightState = 0;
     }
   }
