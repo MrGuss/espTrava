@@ -22,8 +22,8 @@ const int mqtt_port = 1883;                 // Порт для подключе�
 const char *mqtt_user = "";                 // Логи от сервер
 const char *mqtt_pass = "";                 // Пароль от сервера
 
-int _hbDelay = 5000;
-int _lastMilHB = -100000;                   // from cell.TimersInit
+uint32_t _hbDelay = 5000;
+uint32_t _lastMilHB = -100000;                   // from cell.TimersInit
 
 #define BUFFER_SIZE 100
 
@@ -32,8 +32,15 @@ PubSubClient client(wclient, mqtt_server, mqtt_port);
 
 //RTC clock;
 
-uint8_t dhtPin = 14; //D5, 12 = D6
-cell cell1 = cell(14, dhtPin, 12, LED_BUILTIN, 5, 2, 2);
+uint8_t dhtPin = 13;        // D7
+uint8_t pumpPin = 14;       // D5
+uint8_t coolerPin = 12;     // D6
+uint8_t bottleHumPin = 15;  // D8
+uint8_t lampPin = 0;        // D3
+
+//14 = D5, 12 = D6 - change
+// pumpPin = motorASpeedPin (D5)
+cell cell1 = cell(bottleHumPin, dhtPin, pumpPin, coolerPin, LED_BUILTIN, 5000, 2000, 2000, 20);
 
 void sendHeartbeat(bool hard) {
     if (hard) {
@@ -42,7 +49,7 @@ void sendHeartbeat(bool hard) {
     }
     else {
         if ((millis() - _lastMilHB) >= _hbDelay) {
-            Serial.println(String(cell1.unixtime()));
+            //Serial.println(String(cell1.unixtime()));
             String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(cell1.getHum()) + ", \"Temperature\": " + String(cell1.getTemp()) + ", \"Light\": " + String(int(cell1.lightState())) + "}";
             client.publish("test/heartbeat", json);
             _lastMilHB = millis();
@@ -84,10 +91,13 @@ void callback(const MQTT::Publish& pub) {                    // Функция �
             int lightUp = doc["lightUp"]; // 1351824120
             int lightDown = doc["lightDown"]; // 1351824120
             int waterPer = doc["waterPer"];
-            cell1.TimersInit(lightUp, lightDown, 1);
-            Serial.println(lightUp);
-            Serial.println(lightDown);
-            Serial.println(waterPer);
+            cell1.timersInit(lightUp, lightDown, 1);
+            Serial.print("Mode: ");
+            String output;
+            serializeJson(doc, output);
+            //Serial.println(lightUp);
+            //Serial.println(lightDown);
+            //Serial.println(waterPer);
         }
         //delete [] buf;
     }

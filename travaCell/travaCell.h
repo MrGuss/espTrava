@@ -13,35 +13,42 @@
 
 class cell {
 public:
-    cell(word waterS, uint8_t dhtPin, byte pump, byte lightPin, int lightTimeUp, int lightTimeDown, int waterPeriod);
-    byte getWater();
+    cell(uint8_t waterS, uint8_t dhtPin, uint8_t pumpPin, uint8_t coolerPin, uint8_t lightPin, uint32_t lightTimeUp, uint32_t lightTimeDown, uint32_t waterPeriod, uint8_t desiredHum);
+    uint8_t getWater();
     bool lightState();
-    int getHum();
-    int getTemp();
+    uint8_t getHum();
+    uint8_t getTemp();
     void checkDHT();     // Not used in project; prints data from DHT into Serial.
     void checkWater();   // ?
-    void TimersInit(int lightUp, int lightDown, int waterPeriod);
+    void timersInit(uint32_t lightUp, uint32_t lightDown, uint32_t waterPeriod);
     void pumpLoop();
     void lightLoop();
-    void lightHardSet(byte state);
+    void coolerLoop();
+    void lightHardSet(uint8_t state);
+    void pumpHardSet(uint8_t state);
+    void coolerHardSet(uint8_t state);
     void updateLoops();
     uint32_t unixtime(); // temp
 private:
     RTC_DS1307 _RTC;     // Setup an instance of DS1307 naming it RTC
-    byte _lightPin;
+    uint8_t _lightPin;
     uint32_t _lastMilLight;
-    int _lightTimeUp;
-    int _lightTimeDown;
-    int _waterPeriod;
-    int _waterFlowTime = 10;
+    uint32_t _lightTimeUp;
+    uint32_t _lightTimeDown;
+    uint32_t _waterPeriod;
+    uint32_t _waterFlowTime = 10000;
     bool _lightState;
-    int _pumpStateHard = 0;
-    byte _lightStateHard = 0;
-    byte _pumpPin;
+    uint8_t _pumpStateHard = 0;
+    uint8_t _lightStateHard = 0;
+    uint8_t _pumpPin;
     uint32_t _lastMilPump;
     bool _pumpState = 0;
-    byte _waterS;       // whether there is still water for sprinkling ( reads boolean humidity sensor )
+    uint8_t _coolerPin;
+    uint8_t _coolerStateHard = 0;
+    bool _coolerState = 0;
+    uint8_t _waterS;       // whether there is still water for sprinkling ( reads boolean humidity sensor )
     uint8_t _dhtPin;
+    uint8_t _desiredHum;
     DHT _dht = DHT(0, DHT11);
 };
 
