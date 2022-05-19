@@ -1,3 +1,9 @@
+/*
+We have two kits of our system:
+with only pump and water sensor - ONLY_PUMP
+and with everything - EVERYTHING
+*/
+
 #include "travaCell.h"
 
 cell::cell(uint8_t waterS, uint8_t dhtPin, uint8_t pumpPin, uint8_t coolerPin, uint8_t lightPin, uint32_t lightTimeUp, uint32_t lightTimeDown, uint32_t waterPeriod, uint8_t desiredHum) {
@@ -16,9 +22,10 @@ cell::cell(uint8_t waterS, uint8_t dhtPin, uint8_t pumpPin, uint8_t coolerPin, u
     pinMode(this->_pumpPin, OUTPUT);
     pinMode(this->_lightPin, OUTPUT);
     this->_dht.begin();
-    Wire.begin();  // Start the I2C
-    this->_RTC.begin();  // Init RTC
-    this->_RTC.adjust(DateTime(__DATE__, __TIME__));
+    digitalWrite(this->_coolerPin, LOW);
+    //Wire.begin();  // Start the I2C
+    //this->_RTC.begin();  // Init RTC
+    //this->_RTC.adjust(DateTime(__DATE__, __TIME__));
 }
 
 bool cell::lightState() {
@@ -26,7 +33,12 @@ bool cell::lightState() {
 }
 
 uint8_t cell::getWater() {
-    return digitalRead(this->_waterS);
+    if (analogRead(this->_waterS)>512){
+      return 0;
+    }
+    else{
+      return 1;
+    }
 }
 
 uint8_t cell::getHum() {
@@ -71,10 +83,11 @@ void cell::checkWater() {
     }
 }
 
-void cell::timersInit(uint32_t lightUp, uint32_t lightDown, uint32_t waterPeriod) {
+void cell::timersInit(long lightUp, long lightDown, long waterPeriod, int hum) {
     this->_lightTimeUp = lightUp;
     this->_lightTimeDown = lightDown;
     this->_waterPeriod = waterPeriod;
+    this->_desiredHum = hum;
     //this->_lastMilHB = -100000;
     this->_lastMilLight = -100000;
     this->_lastMilPump = -100000;
@@ -102,6 +115,7 @@ void cell::lightLoop() {
 
 void cell::pumpLoop() {
     //DateTime timePump = this->_RTC.now();
+    //while 
     if (this->_pumpStateHard == 0) {
         //if (!this->_pumpState && timePump.unixtime() - this->_lastMilPump >= this->_waterPeriod) {
         if (!this->_pumpState && millis() - this->_lastMilPump >= this->_waterPeriod) {
@@ -125,11 +139,11 @@ void cell::pumpLoop() {
 void cell::coolerLoop() {
     if (this->_coolerStateHard == 0 && this->getHum() && this->_desiredHum)
     {
-        if (!this->_coolerState && this->getHum() > 1.1 * this->_desiredHum) {
+        if (!this->_coolerState && this->getHum() > (this->_desiredHum+10)) {
             analogWrite(this->_coolerPin, 255);
             this->_coolerState = 1;
         }
-        else if (this->_coolerState && this->getHum() <= 0.9 * this->_desiredHum) {
+        else if (this->_coolerState && this->getHum() <= (this->_desiredHum+10)) {
             analogWrite(this->_coolerPin, 0);
             this->_coolerState = 0;
         }
@@ -157,7 +171,7 @@ void cell::lightHardSet(uint8_t state) {
 void cell::pumpHardSet(uint8_t state) {
     if (state == 1) {
         this->_pumpStateHard = 1;
-        digitalWrite(this->_pumpPin, HIGH);
+        analogWrite(this->_pumpPin, 128);
     }
     else if (state == 2) {
         this->_pumpStateHard = 2;

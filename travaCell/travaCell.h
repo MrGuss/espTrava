@@ -20,7 +20,7 @@ public:
     uint8_t getTemp();
     void checkDHT();     // Not used in project; prints data from DHT into Serial.
     void checkWater();   // ?
-    void timersInit(uint32_t lightUp, uint32_t lightDown, uint32_t waterPeriod);
+    void timersInit(long lightUp, long lightDown, long waterPeriod, int hum);
     void pumpLoop();
     void lightLoop();
     void coolerLoop();
@@ -36,7 +36,7 @@ private:
     uint32_t _lightTimeUp;
     uint32_t _lightTimeDown;
     uint32_t _waterPeriod;
-    uint32_t _waterFlowTime = 10000;
+    uint32_t _waterFlowTime = 4000;
     bool _lightState;
     uint8_t _pumpStateHard = 0;
     uint8_t _lightStateHard = 0;
