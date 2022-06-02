@@ -1,5 +1,4 @@
 
-
 // Светодиод подлкючен к 5 пину
 // Датчик температуры ds18b20 к 2 пину
 
@@ -31,26 +30,26 @@ WiFiClient wclient;
 PubSubClient client(wclient, mqtt_server, mqtt_port);
 
 //RTC clock;
-
 uint8_t dhtPin = 13;        // D7
-uint8_t pumpPin = 14;       // D5
-uint8_t coolerPin = 12;     // D6
-//uint8_t bottleHumPin = A0;  // D8
-uint8_t lampPin = 4;        // D2
-
+uint8_t pumpPin = 0;       // D5
+uint8_t coolerPin = 3;     // D6
+uint8_t bottleHumPin = 12;  // D8
+uint8_t lampPin = 1;        // D2
+uint8_t lightPin = A0;
+uint8_t pieza = 2;
 //14 = D5, 12 = D6 - change
 // pumpPin = motorASpeedPin (D5)
-cell cell1 = cell(A0, dhtPin, pumpPin, coolerPin, lampPin, 5000, 2000, 10000, 20);
+cell cell1 = cell(pieza, bottleHumPin, dhtPin, pumpPin, coolerPin, lampPin, lightPin, 5000000, 2000000, 300000000, 1000, 50);
 
 void sendHeartbeat(bool hard) {
   if (hard) {
-    String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(cell1.getHum()) + ", \"Temperature\": " + String(cell1.getTemp()) + ", \"Light\": " + String(int(cell1.lightState())) + ", \"WaterS\": " + String(int(cell1.getWater())) + "}";
+    String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(cell1.getHum()) + ", \"Temperature\": " + String(cell1.getTemp()) + ", \"Light\": " + String(cell1.getLight()) + ", \"WaterS\": " + String(int(cell1.getWater())) + "}";
     client.publish("test/heartbeat", json);
   }
   else {
     if ((millis() - _lastMilHB) >= _hbDelay) {
       //Serial.println(String(cell1.unixtime()));
-      String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(cell1.getHum()) + ", \"Temperature\": " + String(cell1.getTemp()) + ", \"Light\": " + String(int(cell1.lightState())) + ", \"WaterS\": " + String(int(cell1.getWater())) + "}";
+      String json = "{\"ID\": \"" + String(WiFi.macAddress()) + "\", \"Humidity\": " + String(cell1.getHum()) + ", \"Temperature\": " + String(cell1.getTemp()) + ", \"Light\": " + String(cell1.getLight()) + ", \"WaterS\": " + String(int(cell1.getWater())) + "}";
       Serial.println(json);
       client.publish("test/heartbeat", json);
 
@@ -83,29 +82,57 @@ void callback(const MQTT::Publish& pub) {                    // Функция �
     //delete [] buf;
   }
 
-  if (String(pub.topic()) == "test/modeChange") {
+  if (String(pub.topic()) == "test/pump") {
+
+    DeserializationError error = deserializeJson(doc, payload);
+    const char* buf = doc["MAC"]; // "98:7a:7f:45:d4:r3:8d"
+    String MAC = buf;
+    byte state = doc["state"]; // 1351824120
+    Serial.print("pump ");
+    Serial.println(state);
+    if (MAC == String(WiFi.macAddress())) {
+      cell1.pumpHardSet(state);
+      Serial.println(state);
+    }
+    //delete [] buf;
+  }
+
+  if (String(pub.topic()) == "test/cooler") {
+
+    DeserializationError error = deserializeJson(doc, payload);
+    const char* buf = doc["MAC"]; // "98:7a:7f:45:d4:r3:8d"
+    String MAC = buf;
+    byte state = doc["state"]; // 1351824120
+    Serial.print("cooler ");
+    Serial.println(state);
+    if (MAC == String(WiFi.macAddress())) {
+      cell1.coolerHardSet(state);
+      Serial.println(state);
+    }
+    //delete [] buf;
+  }
+
+  if (String(pub.topic()) == "test/mode") {
 
     DeserializationError error = deserializeJson(doc, payload);
     const char* ID = doc["ID"];
     String MAC = ID;
-
+    long IWater = doc["IWater"]; // 1000000
+    long TWater = doc["TWater"]; // 1000000
+    long ILight = doc["ILight"]; // 100000
+    long TLight = doc["TLight"]; // 100000
+    int Temperature = doc["Temperature"]; // 14
+    int Humidity = doc["Humidity"]; // 60
     if (MAC == String(WiFi.macAddress())) {
-      long IWater = doc["IWater"]; // 1000000
-      long TWater = doc["TWater"]; // 1000000
-      long ILight = doc["ILight"]; // 100000
-      long TLight = doc["TLight"]; // 100000
-      int Temperature = doc["Temperature"]; // 14
-      int Humidity = doc["Humidity"]; // 60
-      cell1.timersInit(ILight, TLight, IWater, Humidity);
-      Serial.print("Mode: ");
-      String output;
-      serializeJson(doc, output);
-      //Serial.println(lightUp);
-      //Serial.println(lightDown);
-      //Serial.println(waterPer);
+
+      cell1.timersInit(ILight, TLight, IWater, TWater, Humidity);
+      //Serial.print("Mode: ");
+      //String output;
+      //serializeJson(doc, output);
     }
     //delete [] buf;
   }
+
   delete[] payload;
   /*
     if (String(pub.topic()) == "test/heartbeat") {
@@ -124,7 +151,7 @@ void setup() {
   delay(10);
   Serial.println();
   Serial.println();
-  pinMode(LED_BUILTIN, OUTPUT);
+  //pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -160,6 +187,7 @@ void loop() {
       client.loop();
     }
     cell1.updateLoops();
+    delay(20);
     sendHeartbeat(false);
   }
 
